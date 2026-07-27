@@ -1,0 +1,135 @@
+plugins { id 'com.android.application' }
+
+def propOrEnv = { String name ->
+    providers.gradleProperty(name).orElse(providers.environmentVariable(name)).orNull
+}
+
+def releaseStorePath = propOrEnv('QATRA_KEYSTORE_PATH')
+def releaseStorePassword = propOrEnv('QATRA_KEYSTORE_PASSWORD')
+def releaseKeyAlias = propOrEnv('QATRA_KEY_ALIAS')
+def releaseKeyPassword = propOrEnv('QATRA_KEY_PASSWORD')
+def hasReleaseCredentials = releaseStorePath && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
+def allowUnsignedRelease = 'true'.equalsIgnoreCase(propOrEnv('QATRA_ALLOW_UNSIGNED_RELEASE') ?: '')
+
+android {
+    namespace 'com.qatra.pro'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.qatra.pro'
+        minSdk 23
+        targetSdk 35
+        versionCode 232
+        versionName '2.9.13-production-candidate'
+        // Public verification key exported by Qatra Pro Owner Console. The private signing key
+        // remains non-exportable inside the owner's Android Keystore.
+        buildConfigField 'String', 'LICENSE_PUBLIC_KEY_BASE64', '"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5UDYmuZ8zqUqVXlA5Vuexq7Pnj4bR8bxBSlzO/8f/M9rSVzjQMTON4Rvcig5LGjAZa5850YL30I5KXK8npNaAw=="'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures { buildConfig true }
+    flavorDimensions += 'role'
+
+    productFlavors {
+        admin {
+            dimension 'role'
+            applicationId 'com.meyah.rawdah.system'
+            manifestPlaceholders = [appLabel: 'قطرة برو — الإدارة', qatraSyncMime: 'application/vnd.qatra.admin+qsync', qatraSyncPath: '.*\\.qadmin']
+            buildConfigField 'String', 'APP_ROLE', '"ADMIN"'
+            buildConfigField 'String', 'START_PAGE', '"mobile.html"'
+        }
+        reader {
+            dimension 'role'
+            applicationId 'com.meyah.rawdah.reader'
+            manifestPlaceholders = [appLabel: 'قطرة برو — الكاشف', qatraSyncMime: 'application/vnd.qatra.reader+qsync', qatraSyncPath: '.*\\.qreader']
+            buildConfigField 'String', 'APP_ROLE', '"READER"'
+            buildConfigField 'String', 'START_PAGE', '"reader.html"'
+        }
+        collector {
+            dimension 'role'
+            applicationId 'com.meyah.rawdah.collector'
+            manifestPlaceholders = [appLabel: 'قطرة برو — المحصل', qatraSyncMime: 'application/vnd.qatra.collector+qsync', qatraSyncPath: '.*\\.qcollector']
+            buildConfigField 'String', 'APP_ROLE', '"COLLECTOR"'
+            buildConfigField 'String', 'START_PAGE', '"collector.html"'
+        }
+        cashier {
+            dimension 'role'
+            applicationId 'com.meyah.rawdah.cashier'
+            manifestPlaceholders = [appLabel: 'قطرة برو — الصندوق', qatraSyncMime: 'application/vnd.qatra.cashier+qsync', qatraSyncPath: '.*\\.qcashier']
+            buildConfigField 'String', 'APP_ROLE', '"CASHIER"'
+            buildConfigField 'String', 'START_PAGE', '"cashier.html"'
+        }
+        unified {
+            dimension 'role'
+            applicationId 'com.meyah.rawdah.erp'
+            versionNameSuffix '-erp-alpha'
+            manifestPlaceholders = [appLabel: 'Qatra ERP', qatraSyncMime: 'application/vnd.qatra.erp+qsync', qatraSyncPath: '.*\\.qerp']
+            buildConfigField 'String', 'APP_ROLE', '"UNIFIED"'
+            buildConfigField 'String', 'START_PAGE', '"erp.html"'
+        }
+    }
+
+    signingConfigs {
+        if (hasReleaseCredentials) {
+            secureRelease {
+                storeFile file(releaseStorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+                enableV4Signing true
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+            buildConfigField 'boolean', 'PRODUCTION_BUILD', 'false'
+        }
+        release {
+            if (hasReleaseCredentials) signingConfig signingConfigs.secureRelease
+            minifyEnabled false
+            debuggable false
+            zipAlignEnabled true
+            buildConfigField 'boolean', 'PRODUCTION_BUILD', 'true'
+        }
+    }
+
+    lint {
+        abortOnError true
+        checkReleaseBuilds true
+        warningsAsErrors false
+    }
+
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            outputFileName = "qatra-pro-${variant.flavorName}-${variant.versionName}.apk"
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def releasePackagingRequested = graph.allTasks.any { task ->
+        task.name ==~ /(?i).*(assemble|bundle).*Release.*/
+    }
+    if (releasePackagingRequested && !hasReleaseCredentials && !allowUnsignedRelease) {
+        throw new GradleException('Refusing to create an unsigned production build. Configure the permanent Qatra Pro release signing credentials.')
+    }
+}
+
+dependencies {
+    // Stable AndroidX compatibility layer for biometric authentication on API 23+.
+    implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.22')
+    implementation 'androidx.biometric:biometric:1.1.0'
+    implementation 'androidx.core:core:1.13.1'
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.google.android.gms:play-services-auth:21.6.0'
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.QatraOwner" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#102A43</item>
+        <item name="android:navigationBarColor">#102A43</item>
+        <item name="android:windowBackground">#F6F1E7</item>
+        <item name="android:colorAccent">#1E73BE</item>
+    </style>
+</resources>

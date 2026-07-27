@@ -1,0 +1,17 @@
+{
+  "name": "قطرة برو",
+  "short_name": "قطرة برو",
+  "start_url": "./mobile.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#f8fafc",
+  "theme_color": "#075985",
+  "description": "نظام قطرة برو لإدارة العدادات والقراءات والفواتير والتحصيل والصندوق",
+  "icons": [
+    {"src":"assets/icon-192.png", "sizes":"192x192", "type":"image/png", "purpose":"any maskable"},
+    {"src":"assets/icon-512.png", "sizes":"512x512", "type":"image/png", "purpose":"any maskable"}
+  ]
+}

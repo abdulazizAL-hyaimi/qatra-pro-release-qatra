@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#102a43">
+  <title>Qatra ERP</title>
+  <link rel="stylesheet" href="assets/erp.css">
+  <link rel="stylesheet" href="assets/erp_dynamic.css">
+  <link rel="stylesheet" href="assets/erp_water_operations.css">
+  <link rel="stylesheet" href="assets/erp_water_print.css">
+</head>
+<body>
+  <div id="erpApp" class="erp-app">
+    <aside class="erp-sidebar" id="erpSidebar">
+      <div class="erp-brand">
+        <div class="erp-brand-mark">Q</div>
+        <div><b>Qatra ERP</b><small>نظام إدارة موارد المؤسسة</small></div>
+      </div>
+      <nav id="erpNav" class="erp-nav" aria-label="الوحدات"></nav>
+      <div class="erp-sidebar-foot">
+        <div class="erp-version">الإصدار <span id="erpVersion">—</span></div>
+        <button class="erp-nav-button" data-action="change-password">تغيير كلمة المرور</button>
+        <button class="erp-nav-button danger" data-action="logout">تسجيل الخروج</button>
+      </div>
+    </aside>
+
+    <main class="erp-main">
+      <header class="erp-header">
+        <button id="erpMenuButton" class="erp-icon-button" aria-label="فتح القائمة">☰</button>
+        <div class="erp-page-title">
+          <h1 id="erpPageTitle">لوحة التحكم</h1>
+          <p id="erpPageSubtitle">نظرة موحدة على أعمال المؤسسة</p>
+          <nav id="erpBreadcrumbs" class="erp-breadcrumbs" aria-label="مسار الصفحة"></nav>
+        </div>
+        <div class="erp-global-search">
+          <input id="erpGlobalSearch" type="search" placeholder="بحث شامل…" aria-label="بحث شامل">
+          <button id="erpSearchButton" class="erp-icon-button" aria-label="تنفيذ البحث">⌕</button>
+        </div>
+        <div class="erp-header-actions">
+          <button id="erpTasksButton" class="erp-icon-button" aria-label="المهام والتنبيهات">♧</button>
+          <button id="erpQuickButton" class="erp-icon-button" aria-label="إجراء سريع">＋</button>
+        </div>
+        <div class="erp-user-chip"><span id="erpUserName">—</span><small id="erpUserRoles">—</small></div>
+      </header>
+      <section id="erpNotices" class="erp-notices" aria-live="polite"></section>
+      <section id="erpContent" class="erp-content"><div class="erp-loading">جارٍ تحميل النظام…</div></section>
+    </main>
+  </div>
+
+  <nav id="erpMobileNav" class="erp-mobile-nav" aria-label="التنقل السريع"></nav>
+
+  <div id="erpModal" class="erp-modal" hidden>
+    <div class="erp-modal-backdrop" data-action="close-modal"></div>
+    <section class="erp-modal-card" role="dialog" aria-modal="true">
+      <header><h2 id="erpModalTitle">—</h2><button class="erp-icon-button" data-action="close-modal">×</button></header>
+      <div id="erpModalBody" class="erp-modal-body"></div>
+    </section>
+  </div>
+
+  <script src="assets/erp.js"></script>
+  <script src="assets/erp_migration.js"></script>
+  <script src="assets/erp_dynamic.js"></script>
+  <script src="assets/erp_water_core.js"></script>
+  <script src="assets/erp_water_admin.js"></script>
+  <script src="assets/erp_water_finance.js"></script>
+  <script src="assets/erp_water_corrections.js"></script>
+  <script src="assets/erp_safety_center.js"></script>
+  <script src="assets/erp_sync_center.js"></script>
+  <script src="assets/erp_water_documents.js"></script>
+  <script src="assets/erp_water_document_center.js"></script>
+  <script src="assets/erp_water_reports.js"></script>
+  <script src="assets/erp_water_controls.js"></script>
+  <script src="assets/erp_water_operations.js"></script>
+</body>
+</html>

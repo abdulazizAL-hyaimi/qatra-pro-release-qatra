@@ -1,0 +1,111 @@
+/* Qatra Pro UX 2.6 — phone-first usability layer without changing business logic. */
+:root{
+  --ux-role:#0878c9;
+  --ux-role-dark:#07577b;
+  --ux-role-soft:#e9f5fb;
+  --ux-surface:#ffffff;
+  --ux-text:#112b3f;
+  --ux-muted:#64798a;
+  --ux-line:#d7e4eb;
+  --ux-radius:18px;
+  --ux-shadow:0 8px 24px rgba(7,29,50,.08);
+}
+body.role-admin,body.mobile-body{--ux-role:#0878c9;--ux-role-dark:#07577b;--ux-role-soft:#e8f4fb}
+body.role-reader,body.reader-body{--ux-role:#0b91b9;--ux-role-dark:#066b8c;--ux-role-soft:#e6f7fb}
+body.role-collector,body.collector-app-body{--ux-role:#119c82;--ux-role-dark:#08715f;--ux-role-soft:#e7f8f3}
+body.role-cashier,body.cashier-app-body{--ux-role:#c48a18;--ux-role-dark:#8b6010;--ux-role-soft:#fff5dc}
+body.role-manager-body{--ux-role:#0878c9;--ux-role-dark:#07577b;--ux-role-soft:#e8f4fb}
+
+/* Compact, calm application chrome */
+.app-header{min-height:66px!important;padding-top:9px!important;padding-bottom:9px!important}
+.qatra-brand-lockup{min-width:0}
+.qatra-brand-copy b{font-size:16px!important}.qatra-brand-copy small{font-size:9px!important}.qatra-brand-copy em{font-size:9px!important}
+.qatra-project-mark{width:42px!important;height:42px!important}
+.header-action{min-height:38px!important;padding:7px 10px!important;font-size:11px!important}
+
+/* Current-screen context */
+.qatra-context-bar{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;padding:14px 15px;border:1px solid color-mix(in srgb,var(--ux-role) 24%,#d7e4eb);border-radius:18px;background:linear-gradient(135deg,#fff,var(--ux-role-soft));box-shadow:var(--ux-shadow)}
+.qatra-context-bar::after{content:"";position:absolute;width:120px;height:120px;border-radius:50%;inset:auto -42px -65px auto;background:var(--ux-role);opacity:.07}
+.qatra-context-main{position:relative;z-index:1;display:flex;align-items:center;gap:11px;min-width:0}
+.qatra-context-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:14px;background:var(--ux-role);color:#fff;font-size:21px;box-shadow:0 7px 16px color-mix(in srgb,var(--ux-role) 25%,transparent)}
+.qatra-context-copy{min-width:0}.qatra-context-copy small{display:block;color:var(--ux-role-dark);font-size:9px;font-weight:900}.qatra-context-copy h1{margin:2px 0 0;color:var(--ux-text);font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qatra-context-copy p{margin:4px 0 0;color:var(--ux-muted);font-size:10px;line-height:1.55}
+.qatra-context-status{position:relative;z-index:1;display:flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--ux-line);border-radius:999px;background:rgba(255,255,255,.82);color:var(--ux-muted);font-size:9px;font-weight:800;white-space:nowrap}
+.qatra-context-status::before{content:"";width:7px;height:7px;border-radius:50%;background:#20a666;box-shadow:0 0 0 4px rgba(32,166,102,.1)}
+
+/* Clear sections and actions */
+.card,.reader-card,.reader-import,.sync-card,.due-card,.receipt-card,.transaction-card{scroll-margin-top:88px}
+.card>h2,.card>h3,.reader-import>h3,.sync-card>h3{line-height:1.45}
+.card>h2::after,.card>h3::after,.reader-import>h3::after,.sync-card>h3::after{content:"";display:block;width:34px;height:3px;margin-top:7px;border-radius:999px;background:var(--ux-role);opacity:.72}
+.qatra-action-toolbar{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:8px!important}
+.qatra-action-toolbar>button,.qatra-action-toolbar>.file-btn,.qatra-action-toolbar>a{flex:0 1 auto}
+.qatra-action-toolbar>.qatra-primary-action{min-height:48px!important;padding-inline:18px!important;background:linear-gradient(135deg,var(--ux-role),var(--ux-role-dark))!important;box-shadow:0 8px 18px color-mix(in srgb,var(--ux-role) 25%,transparent)!important}
+.qatra-sticky-actions{position:sticky;bottom:0;z-index:35;margin:13px -8px -8px!important;padding:10px 8px calc(10px + env(safe-area-inset-bottom))!important;border-top:1px solid var(--ux-line);background:rgba(255,255,255,.95);backdrop-filter:blur(14px);box-shadow:0 -9px 24px rgba(7,29,50,.08)}
+.qatra-sticky-actions>button,.qatra-sticky-actions>.file-btn{flex:1 1 140px}
+
+/* Friendly fields */
+.field{position:relative}.field label{font-weight:800!important}.field input,.field select,.field textarea{transition:border-color .15s ease,box-shadow .15s ease,background .15s ease!important}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ux-role)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--ux-role) 13%,transparent)!important}
+.field.qatra-field-invalid input,.field.qatra-field-invalid select,.field.qatra-field-invalid textarea{border-color:#d94a54!important;background:#fff8f8!important}
+.qatra-field-error{display:block;margin-top:5px;color:#b5303c;font-size:10px;font-weight:800;line-height:1.45}
+.qatra-required-mark{margin-inline-start:3px;color:#c83845}
+
+/* Reading entry is the main field operation */
+#currentReading,.reading-current-field .current{font-size:26px!important;font-weight:900!important;text-align:center!important;font-variant-numeric:tabular-nums!important;color:var(--ux-role-dark)!important;background:#fff!important}
+#currentReading{min-height:64px!important;border-width:2px!important}
+.qatra-live-consumption{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--ux-role) 24%,var(--ux-line));border-radius:12px;background:var(--ux-role-soft);color:var(--ux-role-dark);font-size:11px;font-weight:800}
+.qatra-live-consumption b{font-size:18px;font-variant-numeric:tabular-nums}
+.locked-reading{background:#eef3f6!important;color:#53697a!important}
+.reader-card:not(.done){border-inline-start:5px solid var(--ux-role)!important}.reader-card.done{border-inline-start:5px solid #20a666!important}
+.reader-card-head>div{min-width:0}.reader-card-head h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Progress visibility */
+.reader-stats,.collector-stats,.cashier-stats{gap:9px!important}
+.reader-stat,.collector-stat,.cashier-stat{position:relative;overflow:hidden;border:1px solid var(--ux-line)!important;border-top:4px solid var(--ux-role)!important;border-radius:15px!important;background:#fff!important;box-shadow:0 5px 15px rgba(7,29,50,.05)!important}
+.reader-stat b,.collector-stat b,.cashier-stat b{font-size:25px!important;font-variant-numeric:tabular-nums}
+.qatra-progress-summary{margin:10px 0 0}.qatra-progress-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;color:var(--ux-muted);font-size:10px;font-weight:800}.qatra-progress-summary-head b{color:var(--ux-role-dark);font-size:12px}.qatra-progress-summary-track{height:9px;overflow:hidden;border-radius:999px;background:#e4edf1}.qatra-progress-summary-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--ux-role),#21b77b);transition:width .25s ease}
+
+/* Mobile tables become readable operation cards */
+.qatra-mobile-cards td{position:relative}.qatra-mobile-cards td::before{content:attr(data-label)}
+.qatra-table-actions{display:flex;flex-wrap:wrap;gap:6px}
+
+/* Empty states and feedback */
+.qatra-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;padding:24px;text-align:center;color:var(--ux-muted);border:1px dashed #b9ced9;border-radius:16px;background:#f8fbfc}
+.qatra-empty-state::before{content:"□";width:48px;height:48px;display:grid;place-items:center;margin-bottom:9px;border-radius:15px;background:var(--ux-role-soft);color:var(--ux-role);font-size:23px}
+.qatra-toast-region{position:fixed;z-index:20000;inset:auto 12px calc(92px + env(safe-area-inset-bottom)) 12px;display:grid;gap:8px;pointer-events:none}
+.qatra-toast{margin-inline:auto;max-width:560px;padding:11px 14px;border:1px solid #b8d8e7;border-radius:13px;background:#fff;color:var(--ux-text);box-shadow:0 14px 38px rgba(7,29,50,.2);font-size:11px;font-weight:800;animation:qatraToastIn .2s ease}
+@keyframes qatraToastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Manager pages: preserve workflow hierarchy */
+body.role-manager-body .manager-hero{margin-bottom:13px!important}
+body.role-manager-body .workflow-steps{counter-reset:uxstep}
+body.role-manager-body .workflow-steps>div{position:relative;min-height:72px!important;padding:12px!important}
+body.role-manager-body .workflow-steps>div::after{content:"";position:absolute;inset:auto 12px 8px 12px;height:3px;border-radius:99px;background:var(--ux-role-soft)}
+body.role-manager-body .workflow-steps>div b{background:var(--ux-role-soft)!important;color:var(--ux-role-dark)!important}
+
+@media(max-width:720px){
+  .header-actions{display:none!important}
+  main,body.role-manager-body main{padding-inline:10px!important}
+  .qatra-context-bar{margin-inline:0;padding:12px}.qatra-context-status{display:none}.qatra-context-copy h1{font-size:16px}.qatra-context-copy p{font-size:9px}
+  .qatra-action-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;width:100%}
+  .qatra-action-toolbar>button,.qatra-action-toolbar>.file-btn,.qatra-action-toolbar>a{width:100%!important;min-width:0!important}
+  .qatra-action-toolbar>.qatra-primary-action{grid-column:1/-1}
+  .qatra-sticky-actions{display:flex!important;flex-wrap:wrap!important}
+  .qatra-sticky-actions>.qatra-primary-action{flex-basis:100%!important}
+  table.qatra-mobile-cards{display:block!important;width:100%!important;min-width:0!important;border:0!important;background:transparent!important}
+  table.qatra-mobile-cards thead{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important}
+  table.qatra-mobile-cards tbody{display:grid!important;gap:10px!important}
+  table.qatra-mobile-cards tbody tr{display:block!important;overflow:hidden!important;border:1px solid var(--ux-line)!important;border-inline-start:5px solid var(--ux-role)!important;border-radius:15px!important;background:#fff!important;box-shadow:0 5px 15px rgba(7,29,50,.05)!important}
+  table.qatra-mobile-cards tbody td{display:grid!important;grid-template-columns:minmax(92px,38%) minmax(0,1fr)!important;align-items:center!important;gap:8px!important;min-height:42px!important;padding:9px 11px!important;border-bottom:1px solid #e8eff3!important;background:#fff!important;text-align:start!important;white-space:normal!important;overflow-wrap:anywhere!important}
+  table.qatra-mobile-cards tbody td:last-child{border-bottom:0!important}
+  table.qatra-mobile-cards tbody td::before{display:block;color:var(--ux-muted);font-size:9px;font-weight:900;line-height:1.35}
+  table.qatra-mobile-cards tbody td>input,table.qatra-mobile-cards tbody td>select{min-width:0!important;width:100%!important}
+  .table-wrap:has(table.qatra-mobile-cards){overflow:visible!important;border:0!important;background:transparent!important;box-shadow:none!important}
+  .reader-stats,.collector-stats,.cashier-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .reader-stat,.collector-stat,.cashier-stat{padding:11px 7px!important}.reader-stat small,.collector-stat small,.cashier-stat small{font-size:9px!important}.reader-stat b,.collector-stat b,.cashier-stat b{font-size:22px!important}
+}
+@media(max-width:380px){
+  .qatra-context-icon{width:38px;height:38px;flex-basis:38px;font-size:18px}.qatra-context-copy h1{font-size:15px}
+  .qatra-action-toolbar{grid-template-columns:minmax(0,1fr)!important}.qatra-action-toolbar>.qatra-primary-action{grid-column:auto}
+  table.qatra-mobile-cards tbody td{grid-template-columns:minmax(78px,36%) minmax(0,1fr)!important;padding-inline:9px!important}
+}
+@media print{.qatra-context-bar,.qatra-toast-region{display:none!important}}

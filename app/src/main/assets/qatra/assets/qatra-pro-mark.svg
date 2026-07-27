@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Qatra Pro</title>
+  <desc id="desc">Classic Qatra Pro water drop project mark</desc>
+  <defs>
+    <linearGradient id="drop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E73BE"/>
+      <stop offset="0.58" stop-color="#2CC4C7"/>
+      <stop offset="1" stop-color="#8BE4E5"/>
+    </linearGradient>
+  </defs>
+  <path fill="none" stroke="#B08D57" stroke-width="5" d="M80 9C61 35 30 66 30 101c0 30 22 50 50 50s50-20 50-50C130 66 99 35 80 9Z"/>
+  <path fill="url(#drop)" d="M80 22C65 44 42 70 42 100c0 23 17 39 38 39s38-16 38-39C118 70 95 44 80 22Z"/>
+  <path fill="#F6F1E7" d="M80 43C70 58 56 76 56 98c0 15 11 26 24 26s24-11 24-26C104 76 90 58 80 43Z"/>
+  <path fill="none" stroke="#102A43" stroke-width="6" stroke-linecap="round" d="M60 110c12 9 28 9 40 0M65 121c9 6 21 6 30 0"/>
+</svg>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>قطرة برو | الوحدات المؤسسية</title>
+  <meta name="theme-color" content="#102A43">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/design-v25.css">
+  <link rel="stylesheet" href="assets/qatra-brand.css">
+  <link rel="stylesheet" href="assets/ux-v26.css">
+  <link rel="stylesheet" href="assets/enterprise.css">
+</head>
+<body class="mobile-body enterprise-body role-admin">
+<header class="app-header qatra-brand-header no-print">
+  <a class="header-icon" href="mobile.html" aria-label="العودة">➜</a>
+  <div class="qatra-brand-lockup">
+    <img class="qatra-project-mark" src="assets/qatra-pro-mark.svg" alt="Qatra Pro">
+    <div class="qatra-brand-copy"><b>QATRA <span>PRO</span></b><small>نظام إدارة خدمات المياه</small><em>الإدارة المؤسسية</em></div>
+  </div>
+  <button class="header-action qatra-header-action" onclick="Enterprise.openQuickCreate()">إضافة</button>
+</header>
+<nav class="enterprise-nav no-print" aria-label="التنقل المؤسسي">
+  <button data-view="dashboard" class="active">الرئيسية</button>
+  <button data-view="procurement">المشتريات</button>
+  <button data-view="inventory">المخزون</button>
+  <button data-view="assets">الأصول</button>
+  <button data-view="hr">الموارد البشرية</button>
+  <button data-view="maintenance">الصيانة</button>
+  <button data-view="governance">الاعتمادات</button>
+</nav>
+<main id="enterpriseRoot"></main>
+<div id="enterpriseModal" class="enterprise-modal" hidden>
+  <div class="enterprise-backdrop" onclick="Enterprise.closeModal()"></div>
+  <section class="enterprise-sheet" role="dialog" aria-modal="true">
+    <header><h3 id="enterpriseModalTitle">إضافة</h3><button class="light mini" onclick="Enterprise.closeModal()">إغلاق</button></header>
+    <div id="enterpriseModalBody"></div>
+  </section>
+</div>
+<script src="assets/secure_bridge.js"></script>
+<script src="assets/enterprise.js"></script>
+<script src="assets/ux-v26.js"></script>
+</body>
+</html>

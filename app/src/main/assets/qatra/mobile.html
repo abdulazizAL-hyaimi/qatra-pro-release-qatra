@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>قطرة برو | الإدارة</title>
+  <meta name="theme-color" content="#102A43" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/accounting.css" />
+  <link rel="stylesheet" href="assets/design-v25.css" />
+  <link rel="stylesheet" href="assets/qatra-brand.css" />
+  <link rel="stylesheet" href="assets/bulk_messages.css" />
+  <link rel="stylesheet" href="assets/report_customization.css" />
+  <link rel="stylesheet" href="assets/ux-v26.css" />
+  <link rel="stylesheet" href="assets/enterprise.css" />
+</head>
+<body class="mobile-body system-body role-admin">
+  <header class="app-header qatra-brand-header no-print">
+    <div class="qatra-brand-lockup">
+      <img class="qatra-project-mark" src="assets/qatra-pro-mark.svg" alt="Qatra Pro">
+      <div class="qatra-brand-copy"><b>QATRA <span>PRO</span></b><small>نظام إدارة خدمات المياه</small><em>الإدارة</em></div>
+    </div>
+    <button id="appBackButton" class="header-icon app-back-button" type="button" onclick="App.handleAndroidBack()" aria-label="رجوع">➜</button>
+    <button class="header-action qatra-header-action" onclick="App.exportBackup()">نسخة احتياطية</button>
+  </header>
+  <nav class="tabs no-print compact-tabs primary-nav">
+    <button data-tab="dashboard" class="active">الرئيسية</button><button data-tab="readings">القراءات</button><button data-tab="invoices">الفواتير</button><button data-tab="payments">التحصيل</button><button data-tab="more">المزيد</button>
+  </nav>
+  <main>
+    <section id="dashboard" class="tab active"></section><section id="settings" class="tab"></section><section id="subscribers" class="tab"></section><section id="readings" class="tab"></section><section id="invoices" class="tab"></section><section id="payments" class="tab"></section><section id="expenses" class="tab"></section><section id="reports" class="tab"></section><section id="accounting" class="tab"></section><section id="messages" class="tab"></section><section id="safety" class="tab"></section>
+    <section id="enterprise" class="tab enterprise-body" aria-label="الإدارة المؤسسية">
+      <nav class="enterprise-nav no-print" aria-label="التنقل المؤسسي">
+        <button data-view="dashboard" class="active">الرئيسية</button>
+        <button data-view="procurement">المشتريات</button>
+        <button data-view="inventory">المخزون</button>
+        <button data-view="assets">الأصول</button>
+        <button data-view="hr">الموارد البشرية</button>
+        <button data-view="maintenance">الصيانة</button>
+        <button data-view="governance">الاعتمادات</button>
+      </nav>
+      <div id="enterpriseRoot"></div>
+      <div id="enterpriseModal" class="enterprise-modal" hidden>
+        <div class="enterprise-backdrop" onclick="Enterprise.closeModal()"></div>
+        <section class="enterprise-sheet" role="dialog" aria-modal="true">
+          <header><h3 id="enterpriseModalTitle">إضافة</h3><button class="light mini" onclick="Enterprise.closeModal()">إغلاق</button></header>
+          <div id="enterpriseModalBody"></div>
+        </section>
+      </div>
+    </section>
+    <section id="more" class="tab"><div class="card"><h2>المزيد</h2><div class="menu-grid">
+      <button onclick="App.switchTab('enterprise')"><span>🏢</span><b>الإدارة المؤسسية</b></button>
+      <button onclick="App.switchTab('subscribers')"><span>👥</span><b>المشتركون</b></button><button onclick="App.switchTab('messages')"><span>✉️</span><b>الرسائل</b></button><button onclick="App.switchTab('expenses')"><span>💳</span><b>المصروفات</b></button><button onclick="App.switchTab('reports')"><span>📊</span><b>التقارير والكشوفات</b></button><button onclick="App.switchTab('accounting')"><span>⚖️</span><b>المحاسبة العامة</b></button><button onclick="App.switchTab('safety')"><span>🛡️</span><b>التدقيق</b></button><button onclick="App.switchTab('settings')"><span>⚙️</span><b>الإعدادات</b></button><button onclick="QatraDriveSync.open()"><span>☁️</span><b>مركز المزامنة</b></button><button onclick="QatraDriveBackup.open()"><span>🔄</span><b>نسخ Google Drive</b></button><button onclick="QatraSecurity.openLicense()"><span>🔑</span><b>المعلومات والتواصل والترخيص</b></button><button onclick="QatraSecurity.open()"><span>🛡️</span><b>الأمان والدخول</b></button><a href="manager_users.html"><span>👤</span><b>المستخدمون والصلاحيات</b></a><a href="manager_collectors.html"><span>🧾</span><b>إدارة المحصل</b></a><a href="manager_reader.html"><span>📟</span><b>إدارة الكاشف</b></a><a href="manager_cashbox.html"><span>🏦</span><b>إدارة الصندوق</b></a>
+    </div></div></section>
+  </main>
+  <script src="assets/secure_bridge.js"></script><script src="assets/jszip.min.js"></script><script src="assets/app.js"></script><script src="assets/main_meter_opening_fix.js"></script><script src="assets/reading_import_handoff.js"></script><script src="assets/bulk_messages.js"></script><script src="assets/production.js"></script><script src="assets/accounting.js"></script><script src="assets/enterprise.js"></script><script src="assets/v11.js"></script><script src="assets/v13.js"></script><script src="assets/report_fix.js"></script><script src="assets/report_ui.js"></script><script src="assets/report_customization.js"></script><script src="assets/report_logo_cleanup.js"></script><script src="assets/ux-v26.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>قطرة برو | المحصل</title>
+  <meta name="theme-color" content="#102A43">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/collector.css">
+  <link rel="stylesheet" href="assets/design-v25.css">
+  <link rel="stylesheet" href="assets/qatra-brand.css">
+  <link rel="stylesheet" href="assets/ux-v26.css">
+</head>
+<body class="collector-app-body role-collector">
+  <header class="app-header qatra-brand-header no-print">
+    <div class="qatra-brand-lockup">
+      <img class="qatra-project-mark" src="assets/qatra-pro-mark.svg" alt="Qatra Pro">
+      <div class="qatra-brand-copy"><b>QATRA <span>PRO</span></b><small>نظام إدارة خدمات المياه</small><em>المحصل</em></div>
+    </div>
+    <div class="header-actions">
+      <button class="header-action qatra-header-action" onclick="Collector.openDriveSync()">المزامنة</button>
+      <button class="header-action qatra-header-action" onclick="Collector.openSettings()">الإعدادات</button>
+    </div>
+  </header>
+  <nav class="tabs no-print compact-tabs collector-nav" aria-label="التنقل">
+    <button data-tab="home" class="active">الرئيسية</button>
+    <button data-tab="dues">المستحقات</button>
+    <button data-tab="receipts">السندات</button>
+    <button data-tab="sync">التسليم</button>
+    <button data-tab="more">المزيد</button>
+  </nav>
+  <main id="collectorRoot">
+    <section id="home" class="collector-tab active"></section>
+    <section id="dues" class="collector-tab"></section>
+    <section id="receipts" class="collector-tab"></section>
+    <section id="sync" class="collector-tab"></section>
+    <section id="more" class="collector-tab">
+      <div class="card qatra-more-card"><h2>المزيد</h2><div class="menu-grid qatra-more-grid">
+        <button onclick="QatraSecurity.openLicense()"><span>🔑</span><b>المعلومات والتواصل والترخيص</b></button>
+        <button onclick="QatraSecurity.open()"><span>🛡️</span><b>الأمان والدخول</b></button>
+        <button onclick="Collector.openDriveSync()"><span>☁️</span><b>مركز المزامنة</b></button>
+        <button onclick="QatraDriveBackup.open()"><span>🔄</span><b>نسخ Google Drive</b></button>
+        <button onclick="Collector.openSettings()"><span>⚙️</span><b>إعدادات المحصل</b></button>
+        <button onclick="QatraSecurity.lock()"><span>🔒</span><b>قفل التطبيق</b></button>
+      </div></div>
+    </section>
+  </main>
+  <div id="collectorModal" class="collector-modal" hidden>
+    <div class="collector-modal-backdrop" onclick="Collector.closeModal()"></div>
+    <div class="collector-modal-sheet" role="dialog" aria-modal="true" aria-labelledby="collectorModalTitle">
+      <div class="collector-modal-head"><h3 id="collectorModalTitle">تحصيل</h3><button class="light mini" onclick="Collector.closeModal()">إغلاق</button></div>
+      <div id="collectorModalBody"></div>
+    </div>
+  </div>
+  <script src="assets/secure_bridge.js"></script>
+  <script src="assets/collector.js"></script>
+  <script src="assets/ux-v26.js"></script>
+</body>
+</html>

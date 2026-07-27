@@ -1,0 +1,79 @@
+(function(){
+'use strict';
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=v=>String(v??'').trim().toLowerCase();
+const num=v=>{const n=Number(String(v??'').replace(/,/g,''));return Number.isFinite(n)?n:0};
+const fmt=v=>num(v).toLocaleString('en-US',{maximumFractionDigits:2});
+const date=v=>{if(!v)return'—';try{return new Date(v).toLocaleDateString('ar-YE')}catch(e){return String(v)}};
+const MODULES={
+  core:{ns:'erp.core',label:'الإعداد المؤسسي'},billing:{ns:'erp.billing',label:'المشتركون والفوترة'},
+  accounting:{ns:'erp.accounting',label:'المحاسبة والمالية'},procurement:{ns:'erp.procurement',label:'المشتريات والموردون'},
+  inventory:{ns:'erp.inventory',label:'المخزون والمستودعات'},assets:{ns:'erp.assets',label:'الأصول والعهد'},
+  hr:{ns:'erp.hr',label:'الموارد البشرية'},maintenance:{ns:'erp.maintenance',label:'الصيانة والتشغيل'},
+  documents:{ns:'erp.documents',label:'العقود والوثائق'}
+};
+const ENTITY_LABELS={
+  branches:'الفروع والمشاريع',costCenters:'مراكز التكلفة',fiscalYears:'السنوات المالية',approvalRules:'مصفوفة الاعتمادات',
+  subscribers:'المشتركون',meters:'العدادات',readings:'القراءات',invoices:'الفواتير',payments:'المدفوعات',
+  accounts:'دليل الحسابات',journals:'القيود اليومية',periods:'الفترات المحاسبية',reconciliations:'المطابقات البنكية',
+  suppliers:'الموردون',purchaseRequests:'طلبات الشراء',quotations:'عروض الأسعار',purchaseOrders:'أوامر الشراء',goodsReceipts:'استلام المشتريات',supplierInvoices:'فواتير الموردين',
+  warehouses:'المستودعات',items:'الأصناف',movements:'حركات المخزون',stocktakes:'الجرد والتسويات',
+  assets:'سجل الأصول',depreciationRuns:'الإهلاك',transfers:'نقل وتسليم الأصول',
+  employees:'الموظفون',attendance:'الحضور والانصراف',leaveRequests:'الإجازات',payrollRuns:'مسيرات الرواتب',
+  failures:'بلاغات الأعطال',workOrders:'أوامر العمل',preventivePlans:'الصيانة الوقائية',contracts:'العقود',documents:'الوثائق المؤسسية'
+};
+const STATUS_MAP={DRAFT:'مسودة',SUBMITTED:'بانتظار الاعتماد',APPROVED:'معتمد',REJECTED:'مرفوض',ARCHIVED:'مؤرشف'};
+let INFO=null,SESSION=null,states=new Map(),enhancing=false,lastContent='';
+
+function call(name,...args){try{if(!window.AndroidBridge||typeof AndroidBridge[name]!=='function')throw new Error('الوظيفة غير متاحة');const raw=AndroidBridge[name](...args);return typeof raw==='string'?JSON.parse(raw):raw}catch(e){return{ok:false,error:e.message||String(e)}}}
+function has(p){return !!SESSION?.permissions?.includes(p)}
+function getState(module,force=false){if(!force&&states.has(module))return states.get(module);const meta=MODULES[module];if(!meta)return{};const r=call('getState',meta.ns);const value=r.ok&&r.found&&r.payload?r.payload:{};states.set(module,value);return value}
+function refreshStates(){states.clear()}
+function rows(module,entity){const s=getState(module);return Array.isArray(s[entity])?s[entity]:[]}
+function showNotice(message,type='info'){const root=$('#erpNotices');if(!root)return;const id='dyn-'+Date.now();root.insertAdjacentHTML('beforeend',`<div id="${id}" class="erp-notice ${type}"><span>${esc(message)}</span><button data-dyn-close="${id}">×</button></div>`);setTimeout(()=>document.getElementById(id)?.remove(),5000)}
+function showModal(title,html,wide=true){$('#erpModalTitle').textContent=title;$('#erpModalBody').innerHTML=html;$('.erp-modal-card')?.classList.toggle('wide',wide);$('#erpModal').hidden=false;document.body.classList.add('modal-open')}
+function hideModal(){if($('#erpModal'))$('#erpModal').hidden=true;$('#erpModalBody').innerHTML='';document.body.classList.remove('modal-open')}
+function navigate(module,entity='',query='',add=false){hideModal();const nav=$(`[data-module="${module}"]`);if(!nav){showNotice('هذه الوحدة غير متاحة وفق صلاحيات الحساب','error');return}nav.click();setTimeout(()=>{if(entity){const card=$(`[data-entity="${entity}"]`);if(!card){showNotice('هذه الشاشة غير متاحة وفق صلاحيات الحساب','error');return}card.click();setTimeout(()=>{if(query){const input=$('#entitySearch');if(input){input.value=query;input.dispatchEvent(new Event('input',{bubbles:true}))}}if(add)$('#addRecord')?.click()},90)}},70)}
+
+function preferredActions(){const list=[];const add=(m,e,l)=>list.push({m,e,l});
+  if(has('CAPTURE_READINGS'))add('billing','readings','إدخال قراءة جديدة');
+  if(has('COLLECT_PAYMENTS')||has('MANAGE_CASHBOX'))add('billing','payments','تسجيل دفعة');
+  if(has('MANAGE_BILLING')){add('billing','subscribers','إضافة مشترك');add('billing','invoices','إنشاء فاتورة')}
+  if(has('MANAGE_ACCOUNTING'))add('accounting','journals','إضافة قيد يومي');
+  if(has('MANAGE_PROCUREMENT'))add('procurement','purchaseRequests','إنشاء طلب شراء');
+  if(has('MANAGE_INVENTORY'))add('inventory','movements','تسجيل حركة مخزون');
+  if(has('MANAGE_HR'))add('hr','attendance','تسجيل حضور');
+  if(has('MANAGE_MAINTENANCE'))add('maintenance','failures','تسجيل بلاغ عطل');
+  return list.slice(0,8)
+}
+
+function collectTasks(){const tasks=[],now=new Date(),soon=new Date(Date.now()+7*86400000),month=new Date(Date.now()+30*86400000);
+  Object.keys(MODULES).forEach(module=>{const state=getState(module);Object.entries(state).forEach(([entity,list])=>{if(!Array.isArray(list))return;list.forEach(record=>{if(String(record.status||'').toUpperCase()==='SUBMITTED')tasks.push({kind:'approval',module,entity,record,title:`اعتماد ${ENTITY_LABELS[entity]||entity}`,detail:record.no||record.id})})})});
+  rows('billing','invoices').forEach(r=>{if(r.status==='APPROVED'&&r.dueDate&&new Date(r.dueDate)<now)tasks.push({kind:'late',module:'billing',entity:'invoices',record:r,title:'فاتورة متأخرة',detail:`${r.no||r.id} — ${r.subscriber||''}`})});
+  rows('inventory','items').forEach(r=>{if(num(r.minimum)>0&&num(r.currentQty)<=num(r.minimum))tasks.push({kind:'stock',module:'inventory',entity:'items',record:r,title:'مخزون دون الحد الأدنى',detail:`${r.name||r.sku} — ${fmt(r.currentQty)}`})});
+  rows('maintenance','preventivePlans').forEach(r=>{if(r.nextDate&&new Date(r.nextDate)<=soon&&r.status!=='ARCHIVED')tasks.push({kind:'maintenance',module:'maintenance',entity:'preventivePlans',record:r,title:'صيانة وقائية قريبة',detail:`${r.asset||''} — ${date(r.nextDate)}`})});
+  rows('documents','contracts').forEach(r=>{if(r.endDate&&new Date(r.endDate)<=month&&r.status!=='ARCHIVED')tasks.push({kind:'contract',module:'documents',entity:'contracts',record:r,title:'عقد يقترب من الانتهاء',detail:`${r.title||r.no||''} — ${date(r.endDate)}`})});
+  return tasks.slice(0,100)
+}
+
+function taskHtml(t,i){const labels={approval:'بانتظار اعتماد',late:'متأخرة',stock:'مخزون منخفض',maintenance:'موعد قريب',contract:'انتهاء قريب'};return`<button class="erp-dyn-task" data-task-index="${i}"><i class="${t.kind}"></i><span><b>${esc(t.title)}</b><small>${esc(t.detail||'')}</small></span><em>${esc(labels[t.kind]||'مهمة')}</em></button>`}
+function showTasks(){refreshStates();const tasks=collectTasks();showModal('المهام والتنبيهات',tasks.length?`<div class="erp-dyn-task-list">${tasks.map(taskHtml).join('')}</div>`:'<div class="erp-empty">لا توجد مهام أو تنبيهات حالية</div>');$$('[data-task-index]',$('#erpModalBody')).forEach(b=>b.onclick=()=>{const t=tasks[Number(b.dataset.taskIndex)];navigate(t.module,t.entity,t.record.no||t.record.id||'')})}
+function showQuick(){const actions=preferredActions();const modules=$$('#erpNav [data-module]').map(b=>({key:b.dataset.module,label:b.textContent.trim()}));showModal('الإجراءات والانتقال السريع',`<div class="erp-dyn-command"><input id="dynCommandSearch" placeholder="ابحث عن شاشة أو إجراء…"><div id="dynCommandList">${actions.map((a,i)=>`<button data-action-index="${i}"><span>＋</span><b>${esc(a.l)}</b></button>`).join('')}${modules.map(m=>`<button data-go-module="${m.key}"><span>◫</span><b>${esc(m.label)}</b></button>`).join('')}</div></div>`,false);$('#dynCommandSearch').oninput=e=>{const q=norm(e.target.value);$$('button',$('#dynCommandList')).forEach(b=>b.hidden=q&&!norm(b.textContent).includes(q))};$$('[data-action-index]').forEach(b=>b.onclick=()=>{const a=actions[Number(b.dataset.actionIndex)];navigate(a.m,a.e,'',true)});$$('[data-go-module]').forEach(b=>b.onclick=()=>navigate(b.dataset.goModule));setTimeout(()=>$('#dynCommandSearch')?.focus(),30)}
+
+function searchAll(){const input=$('#erpGlobalSearch'),q=norm(input?.value);if(q.length<2){showNotice('اكتب حرفين على الأقل للبحث الشامل');return}refreshStates();const found=[];Object.keys(MODULES).forEach(module=>{const state=getState(module);Object.entries(state).forEach(([entity,list])=>{if(!Array.isArray(list))return;list.forEach(record=>{if(norm(JSON.stringify(record)).includes(q))found.push({module,entity,record})})})});showModal(`نتائج البحث عن «${q}»`,found.length?`<div class="erp-dyn-results">${found.slice(0,80).map((x,i)=>`<button data-result-index="${i}"><span>${esc(ENTITY_LABELS[x.entity]||x.entity)}</span><b>${esc(x.record.no||x.record.name||x.record.title||x.record.id)}</b><small>${esc(STATUS_MAP[String(x.record.status||'DRAFT').toUpperCase()]||x.record.status||'')}</small></button>`).join('')}</div>`:'<div class="erp-empty">لا توجد نتائج مطابقة</div>');$$('[data-result-index]').forEach(b=>b.onclick=()=>{const x=found[Number(b.dataset.resultIndex)];navigate(x.module,x.entity,x.record.no||x.record.name||x.record.id||'')})}
+
+function decorateDashboard(){const content=$('#erpContent');if(!content||$('#erpDynamicWelcome',content))return;const title=$('#erpPageTitle')?.textContent.trim();if(title!=='لوحة التحكم')return;refreshStates();const tasks=collectTasks(),actions=preferredActions(),hour=new Date().getHours(),greeting=hour<12?'صباح الخير':hour<18?'مساء الخير':'أهلًا بك';content.insertAdjacentHTML('afterbegin',`<section id="erpDynamicWelcome" class="erp-dyn-welcome"><div><small>Qatra ERP</small><h2>${greeting}، ${esc(SESSION?.fullName||SESSION?.username||'')}</h2><p>تظهر هنا المهام المرتبطة بدورك فقط، مع وصول مباشر إلى أكثر العمليات استخدامًا.</p></div><div><button class="erp-button" id="dynQuickHome">إجراء سريع</button><button class="erp-button secondary" id="dynRefreshHome">تحديث</button></div></section><div class="erp-grid erp-dyn-kpis"><article class="erp-card span-3 erp-stat"><div class="value">${tasks.filter(t=>t.kind==='approval').length}</div><div class="label">بانتظار الاعتماد</div></article><article class="erp-card span-3 erp-stat"><div class="value">${tasks.filter(t=>t.kind==='late').length}</div><div class="label">فواتير متأخرة</div></article><article class="erp-card span-3 erp-stat"><div class="value">${tasks.filter(t=>t.kind==='stock').length}</div><div class="label">تنبيهات مخزون</div></article><article class="erp-card span-3 erp-stat"><div class="value">${tasks.length}</div><div class="label">إجمالي المهام</div></article></div><article class="erp-card erp-dyn-actions"><div class="erp-card-head"><div><h2>إجراءات سريعة</h2><p>ابدأ العملية دون المرور بالقوائم.</p></div><button class="erp-link-button" id="dynAllTasks">عرض المهام</button></div><div>${actions.map((a,i)=>`<button data-home-action="${i}"><span>＋</span><b>${esc(a.l)}</b></button>`).join('')||'<span class="erp-empty">لا توجد إجراءات متاحة</span>'}</div></article>`);$('#dynQuickHome').onclick=showQuick;$('#dynRefreshHome').onclick=()=>{refreshStates();$('#erpDynamicWelcome')?.remove();$('.erp-dyn-kpis')?.remove();$('.erp-dyn-actions')?.remove();decorateDashboard();showNotice('تم تحديث لوحة التحكم','success')};$('#dynAllTasks').onclick=showTasks;$$('[data-home-action]').forEach(b=>b.onclick=()=>{const a=actions[Number(b.dataset.homeAction)];navigate(a.m,a.e,'',true)})}
+
+function decorateTable(){const table=$('#erpContent .erp-table');if(!table||table.dataset.dynamicFilters)return;const tbody=$('tbody',table);if(!tbody)return;table.dataset.dynamicFilters='1';const card=table.closest('.erp-card');const wrap=table.closest('.erp-table-wrap');const toolbar=card?.querySelector('.erp-toolbar');const bar=document.createElement('div');bar.className='erp-dyn-filterbar';bar.innerHTML=`<div><button class="active" data-dyn-status="ALL">الكل</button>${Object.entries(STATUS_MAP).map(([k,v])=>`<button data-dyn-status="${k}">${v}</button>`).join('')}</div><small id="dynVisibleCount"></small>`;(toolbar||wrap)?.insertAdjacentElement('afterend',bar);const apply=status=>{let visible=0;$$('tr',tbody).forEach(row=>{const text=row.textContent;const match=status==='ALL'||text.includes(STATUS_MAP[status]);row.hidden=!match;if(match)visible++});$('#dynVisibleCount',bar).textContent=`${visible.toLocaleString('en-US')} سجل`;$$('[data-dyn-status]',bar).forEach(b=>b.classList.toggle('active',b.dataset.dynStatus===status))};$$('[data-dyn-status]',bar).forEach(b=>b.onclick=()=>apply(b.dataset.dynStatus));apply('ALL')}
+
+function installAutosave(){const modal=$('#erpModal');if(!modal||modal.hidden)return;const form=$('#erpModalBody .erp-form-grid');const save=$('#saveRecord');if(!form||!save||form.dataset.autosave)return;form.dataset.autosave='1';const title=$('#erpModalTitle')?.textContent||'',key=`qatra-erp-draft:${SESSION?.userId}:${title}`;const inputs=$$('input,select,textarea',form);try{const saved=JSON.parse(sessionStorage.getItem(key)||'null');if(saved&&title.startsWith('إضافة')&&confirm('توجد مسودة غير محفوظة لهذه الشاشة. استعادتها؟'))inputs.forEach(el=>{if(!(el.id in saved))return;if(el.type==='checkbox')el.checked=!!saved[el.id];else el.value=saved[el.id]})}catch(e){}const persist=()=>{const data={};inputs.forEach(el=>data[el.id]=el.type==='checkbox'?el.checked:el.value);sessionStorage.setItem(key,JSON.stringify(data))};inputs.forEach(el=>{el.addEventListener('input',persist);el.addEventListener('change',persist)});save.addEventListener('click',()=>setTimeout(()=>{if($('#erpModal')?.hidden)sessionStorage.removeItem(key)},180))}
+
+function renderMobileNav(){const root=$('#erpMobileNav');if(!root)return;const available=$$('#erpNav [data-module]');const preferred=['dashboard'];if(has('CAPTURE_READINGS')||has('COLLECT_PAYMENTS')||has('MANAGE_BILLING'))preferred.push('billing');if(has('MANAGE_ACCOUNTING'))preferred.push('accounting');if(has('MANAGE_PROCUREMENT'))preferred.push('procurement');if(has('MANAGE_INVENTORY'))preferred.push('inventory');if(has('MANAGE_HR'))preferred.push('hr');if(has('MANAGE_MAINTENANCE'))preferred.push('maintenance');const selected=preferred.map(k=>available.find(b=>b.dataset.module===k)).filter(Boolean).slice(0,5);root.innerHTML=selected.map(b=>`<button data-mobile-module="${b.dataset.module}"><span>${b.querySelector('.icon')?.textContent||'◫'}</span><small>${esc(b.textContent.trim())}</small></button>`).join('');$$('[data-mobile-module]',root).forEach(b=>b.onclick=()=>navigate(b.dataset.mobileModule))}
+
+function enhance(){if(enhancing)return;enhancing=true;try{const signature=($('#erpPageTitle')?.textContent||'')+'|'+($('#erpContent')?.innerHTML.length||0);if(signature!==lastContent){lastContent=signature;decorateDashboard();decorateTable();renderMobileNav()}installAutosave()}finally{enhancing=false}}
+function install(){INFO=call('getAppInfo');if(!INFO.ok)return;SESSION=INFO.session;$('#erpQuickButton')?.addEventListener('click',showQuick);$('#erpTasksButton')?.addEventListener('click',showTasks);$('#erpSearchButton')?.addEventListener('click',searchAll);$('#erpGlobalSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchAll()});document.addEventListener('click',e=>{const id=e.target.closest('[data-dyn-close]')?.dataset.dynClose;if(id)document.getElementById(id)?.remove()});new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});setTimeout(enhance,80);window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();showQuick()}})}
+document.addEventListener('DOMContentLoaded',install);
+})();

@@ -1,0 +1,61 @@
+.accounting-shell{display:grid;gap:14px}.accounting-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px;border-radius:20px;background:linear-gradient(135deg,#063b66,#087ba8 58%,#11a98a);color:#fff;box-shadow:0 16px 38px rgba(4,73,105,.2)}.accounting-hero small{display:block;color:#bdeeff;font-weight:700}.accounting-hero h2{margin:5px 0;font-size:25px}.accounting-hero p{margin:0;color:#e8fbff}.accounting-hero>span{display:grid;place-items:center;width:72px;height:72px;border-radius:22px;background:rgba(255,255,255,.16);font-size:38px}.accounting-controls{display:flex;align-items:end;gap:10px;padding:12px 14px;border:1px solid #d7e5ec;border-radius:15px;background:#fff}.accounting-controls .field{margin:0;min-width:170px}.accounting-nav{display:flex;gap:7px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:thin}.accounting-nav button{flex:0 0 auto;border:1px solid #c9dce5;background:#fff;color:#18465c;border-radius:999px;padding:9px 13px}.accounting-nav button.active{background:#075985;color:#fff;border-color:#075985;box-shadow:0 5px 14px rgba(7,89,133,.22)}.accounting-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:14px}.accounting-kpis article{padding:16px;border:1px solid #dce9ef;border-radius:16px;background:linear-gradient(180deg,#fff,#f7fbfd);box-shadow:0 6px 18px rgba(28,76,98,.06)}.accounting-kpis span,.accounting-kpis small{display:block;color:#607884}.accounting-kpis b{display:block;margin:6px 0;font-size:21px;color:#143d52}.accounting-kpis .ok{color:#087f51}.accounting-kpis .bad{color:#b4232b}.accounting-equation{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:5px;text-align:center;padding:18px;border-radius:14px;background:#eef8fc}.accounting-equation b{font-size:20px;color:#075985}.accounting-equation span{font-size:11px;color:#567}.accounting-equation i{grid-row:1/3;grid-column:2;font-size:24px;color:#0b8a78}.accounting-checks{list-style:none;margin:0;padding:0}.accounting-checks li{padding:9px;border-bottom:1px solid #e6eef2}.accounting-report-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.accounting-report-head h3{margin:0}.accounting-report-head>div{display:flex;gap:7px}.accounting-report-head select{max-width:320px}.accounting-total,.accounting-grand{margin:10px 0;padding:12px;border-radius:11px;background:#eaf4f8;font-weight:800;text-align:left}.accounting-grand{font-size:18px;text-align:center}.accounting-grand.profit{background:#e9f9f1;color:#087443}.accounting-grand.loss{background:#fff0f0;color:#a51d25}.journal-entry-grid{display:grid;grid-template-columns:1fr 140px 1fr 1fr;gap:8px;margin:12px 0}.accounting-shell h4{margin:14px 0 7px;color:#075985}.accounting-shell table td.money{white-space:nowrap}.accounting-shell table th{background:#eaf4f8;color:#17485e}.accounting-shell #accountingView>.card{margin-bottom:13px}
+@media(max-width:760px){.accounting-hero{padding:17px}.accounting-hero h2{font-size:20px}.accounting-hero>span{width:54px;height:54px;font-size:28px}.accounting-controls{align-items:stretch;flex-wrap:wrap}.accounting-controls .field{min-width:calc(50% - 5px);flex:1}.accounting-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.journal-entry-grid{grid-template-columns:1fr 1fr}.accounting-report-head{align-items:stretch;flex-direction:column}.accounting-report-head>div{flex-direction:column}.accounting-report-head select{max-width:none}}
+
+/* Report-like presentation for accounting views */
+#accountingView{padding:16px;border:1px solid #d0e0e7;border-radius:18px;background:linear-gradient(180deg,#fff,#f7fafb);box-shadow:0 9px 26px rgba(7,44,65,.06)}#accountingView>.accounting-report-head{margin:-16px -16px 15px;padding:15px 17px;border-bottom:1px solid #c7dce5;border-radius:18px 18px 0 0;background:linear-gradient(120deg,#eaf5f9,#eef9f6)}.accounting-report-head h3{display:flex;align-items:center;gap:8px;color:#073b5b;font-size:18px}.accounting-report-head h3::before{content:"▤";width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#d9edf5;color:#0878a9}.accounting-report-head button{box-shadow:none}.accounting-shell .table-wrap{border-color:#c8dce5;border-radius:13px;box-shadow:none}.accounting-shell table th{position:sticky;top:0;z-index:2;background:#dcecf3!important;border-bottom:2px solid #7aaabd}.accounting-shell table tbody tr:hover td{background:#edf7fa}.accounting-total{border-right:4px solid #087ba8;text-align:right!important}.accounting-grand{border:1px solid #b9d6e1;font-size:19px!important}.accounting-controls{position:sticky;top:78px;z-index:18;box-shadow:0 8px 20px rgba(7,44,65,.08)}
+@media(max-width:760px){#accountingView{padding:11px;border-radius:14px}#accountingView>.accounting-report-head{margin:-11px -11px 12px;padding:12px;border-radius:14px 14px 0 0}.accounting-report-head h3{font-size:16px}.accounting-controls{position:static}.accounting-shell .table-wrap{overflow:auto}.accounting-shell table{min-width:720px}}
+@media(max-width:390px){.accounting-kpis{grid-template-columns:1fr}.accounting-controls .field{min-width:100%}.accounting-hero>span{display:none}}
+
+/* Phone-first accounting layout: tables become labelled record cards on small screens. */
+.accounting-table-wrap:focus-visible{outline:3px solid #38bdf855;outline-offset:2px}
+@media screen and (max-width:600px){
+  .accounting-shell{gap:10px;min-width:0}
+  .accounting-hero{align-items:flex-start;padding:15px;border-radius:17px}
+  .accounting-hero h2{font-size:clamp(18px,5.4vw,22px);line-height:1.35}
+  .accounting-hero p{font-size:12px;line-height:1.65}
+  .accounting-hero>span{flex:0 0 46px;width:46px;height:46px;border-radius:15px;font-size:24px}
+  .accounting-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px}
+  .accounting-controls .field{min-width:0;width:100%}
+  .accounting-controls>button{grid-column:1/-1;width:100%;justify-content:center}
+  .accounting-nav{max-width:100%;padding:4px 1px 8px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+  .accounting-nav button{scroll-snap-align:start;min-height:42px;padding:8px 12px;font-size:11px}
+  .accounting-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+  .accounting-kpis article{min-width:0;padding:12px;border-radius:13px}
+  .accounting-kpis b{font-size:clamp(16px,4.7vw,20px);overflow-wrap:anywhere}
+  .accounting-kpis small{font-size:10px;line-height:1.5}
+  .accounting-equation{padding:12px;gap:3px}
+  .accounting-equation b{font-size:clamp(14px,4.2vw,18px);overflow-wrap:anywhere}
+  #accountingView{min-width:0;padding:10px;border-radius:13px}
+  #accountingView>.accounting-report-head{margin:-10px -10px 10px;padding:10px;border-radius:13px 13px 0 0}
+  .accounting-report-head{gap:8px}
+  .accounting-report-head h3{font-size:15px;line-height:1.4}
+  .accounting-report-head>button,.accounting-report-head>div,.accounting-report-head>div>button,.accounting-report-head select{width:100%;max-width:none}
+  .accounting-report-head>div{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}
+  .journal-entry-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+  .journal-entry-grid>*{width:100%;min-width:0}
+  .accounting-total,.accounting-grand{font-size:13px!important;line-height:1.7;overflow-wrap:anywhere}
+
+  .accounting-shell .accounting-table-wrap{overflow:visible!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+  .accounting-shell .accounting-responsive-table{display:block;width:100%;min-width:0!important;background:transparent}
+  .accounting-shell .accounting-responsive-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .accounting-shell .accounting-responsive-table tbody{display:grid;gap:9px}
+  .accounting-shell .accounting-responsive-table tbody tr{display:block;overflow:hidden;border:1px solid #c9dce5;border-right:4px solid #087ba8;border-radius:13px;background:#fff;box-shadow:0 4px 13px rgba(7,44,65,.055)}
+  .accounting-shell .accounting-responsive-table tbody td{display:grid;grid-template-columns:minmax(92px,.8fr) minmax(0,1.2fr);gap:10px;align-items:start;width:100%;padding:9px 10px;border-bottom:1px solid #e4edf1;background:transparent!important;text-align:start;overflow-wrap:anywhere;white-space:normal}
+  .accounting-shell .accounting-responsive-table tbody td:last-child{border-bottom:0}
+  .accounting-shell .accounting-responsive-table tbody td::before{content:attr(data-label);color:#557080;font-size:10px;font-weight:800;text-align:right}
+  .accounting-shell .accounting-responsive-table tbody td.money{font-size:14px;font-variant-numeric:tabular-nums}
+  .accounting-shell .accounting-responsive-table tbody td button{width:100%;justify-content:center}
+  .accounting-shell .accounting-responsive-table tbody td.accounting-empty-cell{display:block;padding:18px;text-align:center;color:#64748b}
+  .accounting-shell .accounting-responsive-table tbody td.accounting-empty-cell::before{content:none}
+}
+@media screen and (max-width:380px){
+  .accounting-controls{grid-template-columns:minmax(0,1fr)}
+  .accounting-controls>button{grid-column:auto}
+  .accounting-hero>span{display:none}
+  .accounting-shell .accounting-responsive-table tbody td{grid-template-columns:minmax(82px,.75fr) minmax(0,1.25fr);padding:8px}
+}
+@media screen and (max-width:330px){
+  .accounting-kpis{grid-template-columns:minmax(0,1fr)}
+  .accounting-shell .accounting-responsive-table tbody td{display:block}
+  .accounting-shell .accounting-responsive-table tbody td::before{display:block;margin-bottom:3px}
+}

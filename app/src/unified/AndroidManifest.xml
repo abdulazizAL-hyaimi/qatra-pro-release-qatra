@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application>
+        <activity
+            android:name="com.qatra.pro.UnifiedMainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            tools:replace="android:exported">
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="qatra" android:host="verify" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <queries>
+        <package android:name="com.meyah.rawdah.system" />
+        <package android:name="com.meyah.rawdah.reader" />
+        <package android:name="com.meyah.rawdah.collector" />
+        <package android:name="com.meyah.rawdah.cashier" />
+        <package android:name="com.meyah.rawdah.erp" />
+        <package android:name="com.meyah.rawdah.system.debug" />
+        <package android:name="com.meyah.rawdah.reader.debug" />
+        <package android:name="com.meyah.rawdah.collector.debug" />
+        <package android:name="com.meyah.rawdah.cashier.debug" />
+        <package android:name="com.meyah.rawdah.erp.debug" />
+        <package android:name="com.google.android.apps.docs" />
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/AppTheme"
+        android:label="${appLabel}"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher_round"
+        android:resizeableActivity="true"
+        android:supportsRtl="true">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".QatraCloudSyncActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask" />
+
+        <service
+            android:name=".QatraCloudJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <service
+            android:name=".QatraDriveBackupJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
+        <activity
+            android:name=".QatraDriveBackupActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".LicenseActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".UnifiedMainActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:priority="900">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.admin+qsync" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.admin+qsync" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.reader+qsync" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.reader+qsync" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.collector+qsync" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.collector+qsync" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.cashier+qsync" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.cashier+qsync" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.erp+qsync" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.erp+qsync" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.pairing+binary" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.pairing+binary" />
+            </intent-filter>
+            <intent-filter android:priority="900">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.qatra.admin+qsync" />
+                <data android:mimeType="application/vnd.qatra.reader+qsync" />
+                <data android:mimeType="application/vnd.qatra.collector+qsync" />
+                <data android:mimeType="application/vnd.qatra.cashier+qsync" />
+                <data android:mimeType="application/vnd.qatra.erp+qsync" />
+                <data android:mimeType="application/vnd.qatra.pairing+binary" />
+            </intent-filter>
+            <intent-filter android:priority="850">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.OPENABLE" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qadmin" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qreader" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qcollector" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qcashier" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qerp" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qsync" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qbackup" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qconfirm" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qpair" android:mimeType="*/*" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qlicense" android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter android:priority="840">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.OPENABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/json" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/binary" />
+                <data android:mimeType="application/x-binary" />
+                <data android:mimeType="application/x-download" />
+                <data android:mimeType="application/x-qatra-pro" />
+                <data android:mimeType="application/x-qbackup" />
+                <data android:mimeType="application/x-qsync" />
+            </intent-filter>
+            <intent-filter android:priority="840">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/octet-stream" />
+                <data android:mimeType="application/json" />
+                <data android:mimeType="text/json" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
+                <data android:mimeType="application/binary" />
+                <data android:mimeType="application/x-binary" />
+                <data android:mimeType="application/x-download" />
+                <data android:mimeType="application/x-qatra-pro" />
+                <data android:mimeType="application/x-qbackup" />
+                <data android:mimeType="application/x-qsync" />
+            </intent-filter>
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.OPENABLE" />
+                <data android:scheme="content" android:mimeType="*/*" />
+                <data android:scheme="file" android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter android:priority="100">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter android:priority="950">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:host="*" android:pathPattern=".*\.qlicense" android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter android:priority="950">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/vnd.qatra.license+json" />
+                <data android:scheme="file" android:mimeType="application/vnd.qatra.license+json" />
+            </intent-filter>
+            <intent-filter android:priority="950">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/vnd.qatra.license+json" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

@@ -40,7 +40,17 @@ ok(
 );
 ok(core.includes('function reservedPaid')&&core.includes('function collectibleBalance')&&core.includes('invoiceAmount(i)-approvedPaid(i)-reservedPaid(i)'),'pending receipts reserve invoice balance and prevent duplicate collection');
 ok(core.includes("has('CAPTURE_READINGS')")&&core.includes("has('COLLECT_PAYMENTS')")&&core.includes("has('MANAGE_CASHBOX')"),'navigation and views are role-aware');
-ok(admin.includes('activateCycle')&&admin.includes('latestApprovedReading')&&admin.includes("status:'ASSIGNED'"),'cycle activation creates reader assignments from the latest approved reading');
+ok(
+  admin.includes('function activateCycle') &&
+  admin.includes('latestApprovedReading(meterNo,cycle.id)') &&
+  admin.includes(
+    "readerUsername:readers.length?readers[index%readers.length]:''"
+  ) &&
+  admin.includes(
+    "status:readers.length?'ASSIGNED':'DRAFT'"
+  ),
+  'cycle activation creates reader assignments from the latest approved reading'
+);
 ok(admin.includes('generateInvoices')&&admin.includes("postApprovedRecord','billing','invoices"),'approved readings generate source-linked accounting invoices');
 ok(admin.includes("r.status='SUBMITTED'")&&admin.includes("r.status='APPROVED'")&&admin.includes("r.status='REJECTED'"),'reader submission and management approval workflow is complete');
 ok(finance.includes('freshAvailable=collectibleBalance(invoice)')&&finance.includes("status:'SUBMITTED'"),'collection rechecks available balance before creating a receipt');

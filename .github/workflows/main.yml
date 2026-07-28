@@ -1,0 +1,49 @@
+name: Production ERP Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. جلب الكود من المستودع
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    # 2. إعداد بيئة Java الجاهزة لتشغيل وبناء بيئة Gradle
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'gradle'
+
+    # 3. إعطاء صلاحيات التشغيل لملف الـ Gradle Wrapper (إذا كان موجوداً)
+    - name: Grant execute permission for gradlew
+      run: |
+        if [ -f "./gradlew" ]; then
+          chmod +x gradlew
+        fi
+
+    # 4. بناء المشروع بالكامل وتوليد ملفات الـ JAR أو الحزم المطلوبة
+    - name: Build with Gradle
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew build -x test
+        else
+          gradle build -x test
+        fi
+
+    # 5. تجميع وحفظ الحزم الناتجة للتحميل (Artifacts)
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: qatra-erp-production-build
+        path: |
+          **/build/libs/*.jar
+          **/build/outputs/

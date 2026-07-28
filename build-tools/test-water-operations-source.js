@@ -17,7 +17,27 @@ const patch=read('build-tools/apply-erp-usability-phase.py');
 
 const order=['erp_water_core.js','erp_water_admin.js','erp_water_finance.js','erp_water_operations.js'].map(x=>html.indexOf(x));
 ok(order.every(x=>x>=0)&&order.every((x,i)=>i===0||x>order[i-1]),'water operation modules load in dependency order');
-ok(core.includes("for(const k of ['subscribers','meters','cycles','readings','invoices','payments','collectorSettlements','cashboxSessions','cashboxTransactions'])"),'billing state initializes every operational collection');
+const requiredBillingCollections = [
+  'subscribers',
+  'meters',
+  'cycles',
+  'readings',
+  'invoices',
+  'payments',
+  'collectorSettlements',
+  'cashboxSessions',
+  'cashboxTransactions',
+  'correctionRequests'
+];
+
+ok(
+  core.includes('for(const k of [') &&
+  core.includes('if(!Array.isArray(STATE[k]))STATE[k]=[]') &&
+  requiredBillingCollections.every(
+    key => core.includes(`'${key}'`)
+  ),
+  'billing state initializes every operational collection'
+);
 ok(core.includes('function reservedPaid')&&core.includes('function collectibleBalance')&&core.includes('invoiceAmount(i)-approvedPaid(i)-reservedPaid(i)'),'pending receipts reserve invoice balance and prevent duplicate collection');
 ok(core.includes("has('CAPTURE_READINGS')")&&core.includes("has('COLLECT_PAYMENTS')")&&core.includes("has('MANAGE_CASHBOX')"),'navigation and views are role-aware');
 ok(admin.includes('activateCycle')&&admin.includes('latestApprovedReading')&&admin.includes("status:'ASSIGNED'"),'cycle activation creates reader assignments from the latest approved reading');

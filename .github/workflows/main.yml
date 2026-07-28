@@ -1,43 +1,68 @@
-name: Qatra ERP - Apply Unified Shell
+name: Qatra ERP - Build Unified APK
 
 on:
   push:
     branches:
-      - feature/qatra-unified-erp-20260726
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: qatra-unified-shell-${{ github.ref }}
-  cancel-in-progress: false
+  group: qatra-erp-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  apply:
-    if: github.actor != 'github-actions[bot]'
+  build:
+    name: Build unified ERP debug APK
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
-          ref: feature/qatra-unified-erp-20260726
           fetch-depth: 0
-      - name: Apply unified ERP source migration
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android API 35
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: '8.7'
+
+      - name: Apply unified ERP generated source
         run: |
+          set -euo pipefail
           python3 build-tools/apply-unified-erp-shell.py
           python3 build-tools/stabilize-unified-erp-source.py
           python3 build-tools/apply-erp-usability-phase.py
           python3 build-tools/apply-water-printing-reports.py
           python3 build-tools/harden-erp-document-service.py
           python3 build-tools/harden-water-document-templates.py
-      - name: Validate generated source
+
+      - name: Validate ERP source
         run: |
           set -euo pipefail
           git diff --check
           node build-tools/test-unified-erp-source.js
           node build-tools/test-erp-usability-source.js
           node build-tools/test-water-operations-source.js
+          node build-tools/test-water-controls-source.js
           node build-tools/test-water-corrections-source.js
           node build-tools/test-erp-recovery-trial-source.js
           node build-tools/test-erp-device-sync-source.js
@@ -48,33 +73,43 @@ jobs:
           node build-tools/test-erp-android-services-source.js
           node build-tools/test-erp-assets-workforce-maintenance-source.js
           node build-tools/test-water-printing-reports-source.js
-      - name: Commit generated Android integration
-        shell: bash
+          node build-tools/verify-secure-source.js
+          node build-tools/test-relational-sqlite-source.js
+          node build-tools/test-accounting-runtime.js
+          node build-tools/test-role-management-runtime.js
+          node build-tools/test-portable-backup-source.js
+
+      - name: Run Android lint
+        run: gradle --no-daemon --stacktrace lintUnifiedDebug
+
+      - name: Build unified ERP APK
+        run: gradle --no-daemon --stacktrace assembleUnifiedDebug
+
+      - name: Prepare APK and checksum
         run: |
           set -euo pipefail
-          if git diff --quiet; then
-            echo "Unified shell already applied and stable"
-            exit 0
+          mkdir -p dist
+          find app/build/outputs/apk/unified/debug -type f -name '*.apk' -exec cp {} dist/ \;
+          count="$(find dist -maxdepth 1 -type f -name '*.apk' | wc -l)"
+          if [ "$count" -ne 1 ]; then
+            echo "::error::Expected exactly one unified ERP APK, found $count"
+            exit 1
           fi
-          git config user.name "qatra-pro-build-bot"
-          git config user.email "qatra-pro-build-bot@users.noreply.github.com"
-          git add app/src/main/java/com/qatra/pro/MainActivity.java \
-                  app/src/main/java/com/qatra/pro/QatraDatabase.java \
-                  app/src/main/java/com/qatra/pro/QatraCrypto.java \
-                  app/src/main/java/com/qatra/pro/QatraNamespacePolicy.java \
-                  app/src/main/java/com/qatra/pro/QatraUnifiedUserStore.java \
-                  app/src/main/java/com/qatra/pro/UnifiedMainActivity.java \
-                  app/src/main/java/com/qatra/pro/QatraWebHost.java \
-                  app/src/main/java/com/qatra/pro/QatraFileRouter.java \
-                  app/src/main/java/com/qatra/pro/QatraErpDocumentService.java \
-                  app/src/main/assets/qatra/assets/erp.js \
-                  app/src/main/assets/qatra/assets/erp_water_documents.js \
-                  app/src/main/assets/qatra/assets/erp_water_reports.js \
-                  app/src/main/assets/qatra/assets/erp_water_corrections.js \
-                  app/src/main/assets/qatra/assets/erp_safety_center.js \
-                  app/src/main/assets/qatra/assets/erp_sync_center.js \
-                  app/src/main/assets/qatra/erp.html \
-                  app/src/main/assets/qatra/sw.js
-          git commit -m "تثبيت التعافي والمزامنة المحكومة في Qatra ERP"
-          git pull --rebase origin feature/qatra-unified-erp-20260726
-          git push origin HEAD:feature/qatra-unified-erp-20260726
+          cd dist
+          sha256sum -- *.apk > SHA256SUMS.txt
+          {
+            echo "Qatra ERP unified debug build"
+            echo "Commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_RUN_ID"
+            echo "Package: com.meyah.rawdah.erp.debug"
+            echo
+            cat SHA256SUMS.txt
+          } > BUILD-MANIFEST.txt
+
+      - name: Upload unified ERP APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: qatra-erp-unified-debug-${{ github.run_number }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30

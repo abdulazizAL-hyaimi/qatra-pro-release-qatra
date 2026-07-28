@@ -1,0 +1,200 @@
+name: Qatra ERP - One-Time Full Source Sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Source branch, tag, or commit
+        required: true
+        default: feature/qatra-unified-erp-20260726
+        type: string
+      confirm_public_sync:
+        description: Type SYNC_TO_PUBLIC to confirm public synchronization
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qatra-erp-full-source-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync and validate complete Qatra ERP source
+    if: ${{ inputs.confirm_public_sync == 'SYNC_TO_PUBLIC' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout release repository
+        uses: actions/checkout@v6
+        with:
+          path: release
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Checkout private source branch
+        uses: actions/checkout@v6
+        with:
+          repository: Abdulaziz-haimi/qatra-pro
+          ref: ${{ inputs.source_ref }}
+          path: source
+          fetch-depth: 1
+          token: ${{ secrets.SOURCE_REPO_TOKEN }}
+
+      - name: Validate source identity and completeness
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            source/settings.gradle
+            source/app/build.gradle
+            source/app/src/main/java/com/qatra/pro/QatraDatabase.java
+            source/app/src/main/assets/qatra/erp.html
+            source/build-tools/test-unified-erp-source.js
+            source/build-tools/test-erp-advanced-procurement-inventory-source.js
+            source/build-tools/test-erp-compensation-source.js
+            source/build-tools/test-erp-android-services-source.js
+            source/.github/workflows/build-unified-erp.yml
+            source/.github/workflows/apply-unified-erp-shell.yml
+          )
+          for file in "${required[@]}"; do
+            [[ -f "$file" ]] || { echo "::error::Missing source file: $file"; exit 1; }
+          done
+          grep -q "applicationId 'com.meyah.rawdah.erp'" source/app/build.gradle
+          grep -q 'DATABASE_VERSION = 10' source/app/src/main/java/com/qatra/pro/QatraDatabase.java
+          grep -q "qatra-pro-cache-v2927" source/app/src/main/assets/qatra/sw.js
+
+      - name: Reject sensitive files before public synchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t sensitive < <(
+            find source -type f -not -path 'source/.git/*' \
+              \( -name '.env' -o -name '.env.*' -o -name 'local.properties' -o \
+                 -name '*.jks' -o -name '*.keystore' -o -name '*.p12' -o \
+                 -name '*.pfx' -o -name '*.pem' -o -name '*.key' \) -print
+          )
+          if (( ${#sensitive[@]} > 0 )); then
+            echo "::error::Sensitive files must not be copied to the public repository:"
+            printf '%s\n' "${sensitive[@]}"
+            exit 1
+          fi
+
+      - name: Mirror complete source into release repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='local.properties' \
+            --exclude='*.jks' \
+            --exclude='*.keystore' \
+            --exclude='*.p12' \
+            --exclude='*.pfx' \
+            --exclude='*.pem' \
+            --exclude='*.key' \
+            source/ release/
+
+          mkdir -p release/.github/workflows
+          find release/.github/workflows -maxdepth 1 -type f -delete
+          cp source/.github/workflows/build-unified-erp.yml release/.github/workflows/build-unified-erp.yml
+          cp source/.github/workflows/apply-unified-erp-shell.yml release/.github/workflows/apply-unified-erp-shell.yml
+
+      - name: Adapt workflows for main
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          paths = [
+              Path("release/.github/workflows/build-unified-erp.yml"),
+              Path("release/.github/workflows/apply-unified-erp-shell.yml"),
+          ]
+          for path in paths:
+              text = path.read_text(encoding="utf-8")
+              text = text.replace("feature/qatra-unified-erp-20260726", "main")
+              text = text.replace(
+                  '            gh pr comment 24 --repo "$GITHUB_REPOSITORY" --body-file erp-source-summary.md || true\n',
+                  "",
+              )
+              path.write_text(text, encoding="utf-8")
+          PY
+          grep -q -- "- main" release/.github/workflows/build-unified-erp.yml
+          grep -q "ref: main" release/.github/workflows/apply-unified-erp-shell.yml
+
+      - name: Apply canonical generated ERP source
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 build-tools/apply-unified-erp-shell.py
+          python3 build-tools/stabilize-unified-erp-source.py
+          python3 build-tools/apply-erp-usability-phase.py
+          python3 build-tools/apply-water-printing-reports.py
+          python3 build-tools/harden-erp-document-service.py
+          python3 build-tools/harden-water-document-templates.py
+          git diff --check
+
+      - name: Run every ERP source gate
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gates=(
+            build-tools/test-unified-erp-source.js
+            build-tools/test-erp-usability-source.js
+            build-tools/test-water-operations-source.js
+            build-tools/test-water-controls-source.js
+            build-tools/test-water-corrections-source.js
+            build-tools/test-erp-recovery-trial-source.js
+            build-tools/test-erp-device-sync-source.js
+            build-tools/test-erp-device-receipts-source.js
+            build-tools/test-erp-procurement-inventory-source.js
+            build-tools/test-erp-advanced-procurement-inventory-source.js
+            build-tools/test-erp-compensation-source.js
+            build-tools/test-erp-android-services-source.js
+            build-tools/test-erp-assets-workforce-maintenance-source.js
+            build-tools/test-water-printing-reports-source.js
+            build-tools/verify-secure-source.js
+            build-tools/test-relational-sqlite-source.js
+            build-tools/test-accounting-runtime.js
+            build-tools/test-role-management-runtime.js
+            build-tools/test-portable-backup-source.js
+          )
+          for gate in "${gates[@]}"; do
+            [[ -f "$gate" ]] || { echo "::error::Missing gate: $gate"; exit 1; }
+            echo "===== Running $gate ====="
+            node "$gate"
+          done
+
+      - name: Verify synchronized release version
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'DATABASE_VERSION = 10' app/src/main/java/com/qatra/pro/QatraDatabase.java
+          grep -q "qatra-pro-cache-v2927" app/src/main/assets/qatra/sw.js
+          grep -q "test-erp-advanced-procurement-inventory-source.js" .github/workflows/build-unified-erp.yml
+          grep -q "test-erp-compensation-source.js" .github/workflows/build-unified-erp.yml
+          grep -q "test-erp-android-services-source.js" .github/workflows/build-unified-erp.yml
+
+      - name: Commit synchronized source to main
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "qatra-erp-sync-bot"
+          git config user.email "qatra-erp-sync-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Release repository is already synchronized."
+            exit 0
+          fi
+          git commit -m "مزامنة فرع Qatra ERP الكامل وإصلاح بوابات البناء"
+          git push origin HEAD:main

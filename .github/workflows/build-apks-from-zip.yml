@@ -1,0 +1,71 @@
+name: Build Qatra Pro APKs From ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle 8.7
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Extract project
+        run: |
+          mkdir extracted
+          unzip -q qatra-pro.zip -d extracted
+          find extracted -maxdepth 4 -name settings.gradle -print
+
+      - name: Build four APKs
+        shell: bash
+        run: |
+          PROJECT_DIR="$(dirname "$(find extracted -name settings.gradle -print -quit)")"
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "لم يتم العثور على settings.gradle داخل الملف المضغوط"
+            exit 1
+          fi
+
+          cd "$PROJECT_DIR"
+
+          gradle --no-daemon --stacktrace \
+            assembleAdminDebug \
+            assembleReaderDebug \
+            assembleCollectorDebug \
+            assembleCashierDebug
+
+      - name: Collect APK files
+        run: |
+          mkdir -p dist
+          find extracted -type f -path "*/build/outputs/apk/*/debug/*.apk" \
+            -exec cp {} dist/ \;
+
+          ls -la dist
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: qatra-pro-four-apks
+          path: dist/*.apk
+          if-no-files-found: error

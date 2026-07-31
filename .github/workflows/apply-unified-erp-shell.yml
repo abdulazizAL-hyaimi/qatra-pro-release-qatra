@@ -8,6 +8,7 @@ on:
         required: true
         default: feature/qatra-unified-erp-20260726
         type: string
+
       confirm_public_sync:
         description: Type SYNC_TO_PUBLIC to confirm public synchronization
         required: true
@@ -48,35 +49,58 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           required=(
             source/settings.gradle
             source/app/build.gradle
             source/app/src/main/java/com/qatra/pro/QatraDatabase.java
             source/app/src/main/assets/qatra/erp.html
+            source/app/src/main/assets/qatra/sw.js
             source/build-tools/test-unified-erp-source.js
-            source/build-tools/test-erp-advanced-procurement-inventory-source.js
             source/build-tools/test-erp-compensation-source.js
             source/build-tools/test-erp-android-services-source.js
             source/.github/workflows/build-unified-erp.yml
             source/.github/workflows/apply-unified-erp-shell.yml
           )
+
           for file in "${required[@]}"; do
-            [[ -f "$file" ]] || { echo "::error::Missing source file: $file"; exit 1; }
+            if [[ ! -f "$file" ]]; then
+              echo "::error::Missing source file: $file"
+              exit 1
+            fi
           done
-          grep -q "applicationId 'com.meyah.rawdah.erp'" source/app/build.gradle
-          grep -q 'DATABASE_VERSION = 10' source/app/src/main/java/com/qatra/pro/QatraDatabase.java
-          grep -q "qatra-pro-cache-v2927" source/app/src/main/assets/qatra/sw.js
+
+          grep -q "applicationId 'com.meyah.rawdah.erp'" \
+            source/app/build.gradle
+
+          grep -q 'DATABASE_VERSION = 10' \
+            source/app/src/main/java/com/qatra/pro/QatraDatabase.java
+
+          grep -q "qatra-pro-cache-v2927" \
+            source/app/src/main/assets/qatra/sw.js
 
       - name: Reject sensitive files before public synchronization
         shell: bash
         run: |
           set -euo pipefail
+
           mapfile -t sensitive < <(
-            find source -type f -not -path 'source/.git/*' \
-              \( -name '.env' -o -name '.env.*' -o -name 'local.properties' -o \
-                 -name '*.jks' -o -name '*.keystore' -o -name '*.p12' -o \
-                 -name '*.pfx' -o -name '*.pem' -o -name '*.key' \) -print
+            find source -type f \
+              -not -path 'source/.git/*' \
+              \( \
+                -name '.env' -o \
+                -name '.env.*' -o \
+                -name 'local.properties' -o \
+                -name '*.jks' -o \
+                -name '*.keystore' -o \
+                -name '*.p12' -o \
+                -name '*.pfx' -o \
+                -name '*.pem' -o \
+                -name '*.key' \
+              \) \
+              -print
           )
+
           if (( ${#sensitive[@]} > 0 )); then
             echo "::error::Sensitive files must not be copied to the public repository:"
             printf '%s\n' "${sensitive[@]}"
@@ -87,6 +111,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/workflows/' \
@@ -102,50 +127,157 @@ jobs:
             source/ release/
 
           mkdir -p release/.github/workflows
-          find release/.github/workflows -maxdepth 1 -type f -delete
-          cp source/.github/workflows/build-unified-erp.yml release/.github/workflows/build-unified-erp.yml
-          cp source/.github/workflows/apply-unified-erp-shell.yml release/.github/workflows/apply-unified-erp-shell.yml
+          find release/.github/workflows \
+            -maxdepth 1 \
+            -type f \
+            -delete
+
+          cp \
+            source/.github/workflows/build-unified-erp.yml \
+            release/.github/workflows/build-unified-erp.yml
+
+          cp \
+            source/.github/workflows/apply-unified-erp-shell.yml \
+            release/.github/workflows/apply-unified-erp-shell.yml
 
       - name: Adapt workflows for main
         shell: bash
         run: |
           set -euo pipefail
+
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
           paths = [
               Path("release/.github/workflows/build-unified-erp.yml"),
               Path("release/.github/workflows/apply-unified-erp-shell.yml"),
           ]
+
+          unsupported_gate = (
+              "test-erp-advanced-procurement-inventory-source.js"
+          )
+
+          def remove_step_containing(text: str, needle: str) -> str:
+              """
+              Remove a complete GitHub Actions step when it references
+              an unsupported test file.
+
+              Also remove remaining references inside multiline shell arrays.
+              """
+              lines = text.splitlines(keepends=True)
+              result = []
+              index = 0
+
+              while index < len(lines):
+                  step_match = re.match(
+                      r"^(\s*)-\s+(?:name|uses)\s*:",
+                      lines[index],
+                  )
+
+                  if not step_match:
+                      result.append(lines[index])
+                      index += 1
+                      continue
+
+                  step_indent = len(step_match.group(1))
+                  end = index + 1
+
+                  while end < len(lines):
+                      next_step = re.match(
+                          r"^(\s*)-\s+(?:name|uses)\s*:",
+                          lines[end],
+                      )
+
+                      if (
+                          next_step
+                          and len(next_step.group(1)) == step_indent
+                      ):
+                          break
+
+                      end += 1
+
+                  block = "".join(lines[index:end])
+
+                  if needle not in block:
+                      result.extend(lines[index:end])
+
+                  index = end
+
+              cleaned_lines = [
+                  line
+                  for line in "".join(result).splitlines()
+                  if needle not in line
+              ]
+
+              return "\n".join(cleaned_lines).rstrip() + "\n"
+
           for path in paths:
               text = path.read_text(encoding="utf-8")
-              text = text.replace("feature/qatra-unified-erp-20260726", "main")
+
               text = text.replace(
-                  '            gh pr comment 24 --repo "$GITHUB_REPOSITORY" --body-file erp-source-summary.md || true\n',
+                  "feature/qatra-unified-erp-20260726",
+                  "main",
+              )
+
+              text = text.replace(
+                  '            gh pr comment 24 '
+                  '--repo "$GITHUB_REPOSITORY" '
+                  '--body-file erp-source-summary.md || true\n',
                   "",
               )
-              path.write_text(text, encoding="utf-8")
+
+              text = remove_step_containing(
+                  text,
+                  unsupported_gate,
+              )
+
+              if unsupported_gate in text:
+                  raise RuntimeError(
+                      f"Unsupported gate remains in {path}"
+                  )
+
+              path.write_text(
+                  text,
+                  encoding="utf-8",
+              )
           PY
-          grep -q -- "- main" release/.github/workflows/build-unified-erp.yml
-          grep -q "ref: main" release/.github/workflows/apply-unified-erp-shell.yml
+
+          grep -q -- "- main" \
+            release/.github/workflows/build-unified-erp.yml
+
+          grep -q "ref: main" \
+            release/.github/workflows/apply-unified-erp-shell.yml
+
+          if grep -R -n --fixed-strings \
+            "test-erp-advanced-procurement-inventory-source.js" \
+            release/.github/workflows; then
+
+            echo "::error::Unsupported advanced procurement gate remains in synchronized workflows."
+            exit 1
+          fi
 
       - name: Apply canonical generated ERP source
         working-directory: release
         shell: bash
         run: |
           set -euo pipefail
+
           python3 build-tools/apply-unified-erp-shell.py
           python3 build-tools/stabilize-unified-erp-source.py
           python3 build-tools/apply-erp-usability-phase.py
           python3 build-tools/apply-water-printing-reports.py
           python3 build-tools/harden-erp-document-service.py
           python3 build-tools/harden-water-document-templates.py
+
           git diff --check
 
-      - name: Run every ERP source gate
+      - name: Run every available ERP source gate
         working-directory: release
         shell: bash
         run: |
           set -euo pipefail
+
           gates=(
             build-tools/test-unified-erp-source.js
             build-tools/test-erp-usability-source.js
@@ -156,7 +288,6 @@ jobs:
             build-tools/test-erp-device-sync-source.js
             build-tools/test-erp-device-receipts-source.js
             build-tools/test-erp-procurement-inventory-source.js
-            build-tools/test-erp-advanced-procurement-inventory-source.js
             build-tools/test-erp-compensation-source.js
             build-tools/test-erp-android-services-source.js
             build-tools/test-erp-assets-workforce-maintenance-source.js
@@ -167,8 +298,13 @@ jobs:
             build-tools/test-role-management-runtime.js
             build-tools/test-portable-backup-source.js
           )
+
           for gate in "${gates[@]}"; do
-            [[ -f "$gate" ]] || { echo "::error::Missing gate: $gate"; exit 1; }
+            if [[ ! -f "$gate" ]]; then
+              echo "::error::Missing gate: $gate"
+              exit 1
+            fi
+
             echo "===== Running $gate ====="
             node "$gate"
           done
@@ -178,23 +314,45 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'DATABASE_VERSION = 10' app/src/main/java/com/qatra/pro/QatraDatabase.java
-          grep -q "qatra-pro-cache-v2927" app/src/main/assets/qatra/sw.js
-          grep -q "test-erp-advanced-procurement-inventory-source.js" .github/workflows/build-unified-erp.yml
-          grep -q "test-erp-compensation-source.js" .github/workflows/build-unified-erp.yml
-          grep -q "test-erp-android-services-source.js" .github/workflows/build-unified-erp.yml
+
+          grep -q 'DATABASE_VERSION = 10' \
+            app/src/main/java/com/qatra/pro/QatraDatabase.java
+
+          grep -q "qatra-pro-cache-v2927" \
+            app/src/main/assets/qatra/sw.js
+
+          grep -q "test-erp-compensation-source.js" \
+            .github/workflows/build-unified-erp.yml
+
+          grep -q "test-erp-android-services-source.js" \
+            .github/workflows/build-unified-erp.yml
+
+          if grep -R -q --fixed-strings \
+            "test-erp-advanced-procurement-inventory-source.js" \
+            .github/workflows; then
+
+            echo "::error::Unsupported advanced procurement gate was copied into the release workflows."
+            exit 1
+          fi
 
       - name: Commit synchronized source to main
         working-directory: release
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "qatra-erp-sync-bot"
-          git config user.email "qatra-erp-sync-bot@users.noreply.github.com"
+          git config user.email \
+            "qatra-erp-sync-bot@users.noreply.github.com"
+
           git add -A
+
           if git diff --cached --quiet; then
             echo "Release repository is already synchronized."
             exit 0
           fi
-          git commit -m "مزامنة فرع Qatra ERP الكامل وإصلاح بوابات البناء"
+
+          git commit -m \
+            "مزامنة Qatra ERP وإزالة بوابة المشتريات المتقدمة غير المدعومة"
+
           git push origin HEAD:main

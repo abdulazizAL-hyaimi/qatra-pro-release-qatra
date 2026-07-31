@@ -34,7 +34,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir extracted
-          unzip -q qatra-pro.zip -d extracted
+          unzip -q qatra-pro1.zip -d extracted
           find extracted -maxdepth 4 -name settings.gradle -print
 
       - name: Build four APKs
